@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GAME</title>
+        <link rel="stylesheet" type="text/css" href="/css/reset.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="/css/index.css">
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="crossorigin="anonymous"></script>
+        <script src="/js/edge.js"></script>
+        <script src="/js/ball.js"></script>
+        <script src="/js/plane.js"></script>
+        <script src="/js/main.js"></script>
+    </head>
+    <body onload="init();">
+        <!-- game state -->
+        <div id="state2" class="stateDiv" style="display: none; width: 100%; height: 100%;">
+                <nav class="navbar navbar-inverse navbar-fixed-top" style="margin-bottom: 0;">
+                  <div class="container-fluid">
+                    <div class="navbar-header">
+                      <a class="navbar-brand" href="#">Play Billiards</a>
+                    </div>
+                    <ul class="nav navbar-nav">
+                      <li class="active"><a href="#">Home</a></li>
+                      <li><a href="#">Leaderboard</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                      <li><a href="#">About</a></li>
+                    </ul>
+                  </div>
+                </nav>
+            <div style="position: absolute; top: 51px; bottom: 5px; width: 100%;">
+                <div id="planeDiv" style="width: 80%; height: 100%; float: left; background-color: white;">
+                </div>
+                <div id="gameStatusPanel" style="width: 20%; height: 100%; float: left; background-color: white;">
+                    <div style="width: 100%; height: 50%; background-color: purple; text-align: center;">
+                        <p id="playerTurnText">unset</p>
+                        <p>Power</p>
+                        <input id="power" type="range" min="2" max="300" value="100"/>
+                        <p><button id="shootPanButton">Shoot Mode</button></p>
+                    </div>
+                    <div style="width: 100%; height: 50%; background-color: gray;">
+                        <div style="width: 100%; height: 2%"></div>
+                        <div style="width: 100%; height: 80%">
+                            <div style="width: 2%; height: 100%; float: left;"></div>
+                            <div style="width: 96%; height: 100%; float: left; background-color: white;">
+                                <ul id="chatWindowUl">
+                                </ul>
+                            </div>
+                            <div style="width: 2%; height: 100%; float: left;"></div>
+                        </div>
+                        
+                        <div style="width: 100%; height: 18%">
+                            <div style="width: 100%; height: 2%"></div>
+                            <div style="width: 100%; height: 96%">
+                                <div style="width: 10%; height: 100%; float: left;"></div>
+                                <div style="width: 80%; height: 100%; float: left; background-color: gray;">
+                                    <input type="text" id="chatInput" style="width: 70%; float: left;">
+                                    <button style="float: left;" id="sendChatButton">Send</button>
+                                </div>
+                                <div style="width: 10%; height: 2%; float: left;"></div>
+                            </div>
+                            <div style="width: 100%; height: 10%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="nonGameStateDiv" style="width: 100%; height: 100%;">
+            <div id="baseHeaderDiv">
+                <nav class="navbar navbar-inverse navbar-fixed-top" style="margin-bottom: 0;">
+                  <div class="container-fluid">
+                    <div class="navbar-header">
+                      <a class="navbar-brand" href="#">Play Billiards</a>
+                    </div>
+                    <ul class="nav navbar-nav">
+                      <li class="active"><a href="#">Home</a></li>
+                      <li><a href="#">Leaderboard</a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                      <li><a href="#">About</a></li>
+                    </ul>
+                  </div>
+                </nav>
+            </div>
+            <div id="baseBodyDiv">       
+                <div id="baseLeftMarginDiv"></div>
+                <div id="baseCenterDiv">
+                
+                    <!-- initial state -->
+                    <div id="state0" class="stateDiv" style="width: 100%; height: 100%">
+                        <div style="width: 100%; height: 12%; text-align: center;">
+                            <h2>Enter a Username</h2>                    
+                        </div>
+                        <hr style="margin: 0px;">
+                        <div style="width: 100%; height: 26%;"></div>
+                        <div style="width: 100%; height: 12%; text-align: center;">
+                            <input style="width: 50%" id="userNameInput">                    
+                        </div>
+                        <div style="width: 100%; height: 20%;"></div>
+                        <div style="width: 100%; height: 12%; text-align: center;">
+                            <button type="button" class="btn btn-default" id="userNameSubmit">Play</button>                 
+                        </div>
+                    </div>
+                    
+                    <!-- waiting pool state -->
+                    <div id="state1" class="stateDiv" style="display: none; width: 100%; height: 100%">
+                        <div style="width: 100%; height: 12%; text-align: center;">
+                            <h2>Wait for opponent</h2>                    
+                        </div>
+                        <hr style="margin: 5px;">
+                        <div style ="width: 100%; height: 60%;">
+                            <div style="width: 20%; height: 100%; float: left;">
+                            </div>
+                            <div style="width: 60%; height: 100%; float: left;">
+                                <ul id="waitPool" style="width: 100%; height: 100%; background-color: white; border-radius: 5px;" class="list-group">
+                                </ul>
+                            </div>
+                            <div style="width: 20%; height: 100%; float: left;">
+                            </div>                        
+                        </div>
+                    </div>
+                    
+                    <!-- timeout state -->
+                    <div id="state3" class="stateDiv" style="display: none;">
+                    </div>
+                    
+                </div>
+                <div id="baseRightMarginDiv"></div>
+            </div>
+            <div id="baseFooterDiv"></div>
+        </div>
+    </body>
+</html>

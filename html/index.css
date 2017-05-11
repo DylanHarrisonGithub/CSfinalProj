@@ -1,0 +1,44 @@
+html, body {
+	height: 100%;
+	width: 100%;
+}
+
+#baseHeaderDiv {
+	height: 25%;
+	width: 100%;
+    background-color: #4510ff;
+}
+
+#baseBodyDiv {
+	height: 60%;
+	width: 100%;
+    background-color: #4510ff;
+}
+
+#baseLeftMarginDiv {
+	float: left;
+	height: 100%;
+	width: 20%;
+    background-color: #4510ff;
+}
+
+#baseCenterDiv {
+	float: left;
+	height: 100%;
+	width: 60%;
+    border-radius: 25px;
+    background-color: #557755;
+}
+
+#baseRightMarginDiv {
+	float: left;
+	height: 100%;
+	width: 20%;
+    background-color: #4510ff;
+}
+
+#baseFooterDiv {
+	height: 15%;
+	width: 100%;
+    background-color: #4510ff;
+}
