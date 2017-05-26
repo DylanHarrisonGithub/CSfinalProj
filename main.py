@@ -28,53 +28,6 @@ user0RecievedAnimation = False
 user1RecievedAnimation = False
 engineIsThinking = False
 myEngine = Engine()
-myEngine.points = [
-    Point(400.0, 170.0), Point(430.0, 200.0), Point(400.0, 230.0), Point(370.0, 200.0), 
-    Point(21.3, 200.0), Point(21.3, 242.5), Point(-21.3, 242.5), Point(-21.3, 200.0),
-    Point(-370.0, 200.0), Point(-400.0, 230.0), Point(-430.0, 200.0), Point(-400.0, 170.0),
-    Point(-400.0, -170.0), Point(-430.0, -200.0), Point(-400.0, -230.0), Point(-370.0, -200.0),
-    Point(-21.3, -200.0), Point(-21.3, -242.5), Point(21.3, -242.5), Point(21.3, -200.0),
-    Point(370.0, -200.0), Point(400.0, -230.0), Point(430.0, -200.0), Point(400.0, -170.0),    
-]
-myEngine.edges = [
-    Edge(myEngine.points[0], myEngine.points[1], "#000000"),
-    Edge(myEngine.points[1], myEngine.points[2], "#000000"),
-    Edge(myEngine.points[2], myEngine.points[3], "#000000"),
-    Edge(myEngine.points[3], myEngine.points[4], "#000000"),
-    Edge(myEngine.points[4], myEngine.points[5], "#000000"),
-    Edge(myEngine.points[5], myEngine.points[6], "#000000"),
-    Edge(myEngine.points[6], myEngine.points[7], "#000000"),
-    Edge(myEngine.points[7], myEngine.points[8], "#000000"),
-    Edge(myEngine.points[8], myEngine.points[9], "#000000"),
-    Edge(myEngine.points[9], myEngine.points[10], "#000000"),    
-    Edge(myEngine.points[10], myEngine.points[11], "#000000"),
-    Edge(myEngine.points[11], myEngine.points[12], "#000000"),
-    Edge(myEngine.points[12], myEngine.points[13], "#000000"),
-    Edge(myEngine.points[13], myEngine.points[14], "#000000"),
-    Edge(myEngine.points[14], myEngine.points[15], "#000000"),
-    Edge(myEngine.points[15], myEngine.points[16], "#000000"),    
-    Edge(myEngine.points[16], myEngine.points[17], "#000000"),
-    Edge(myEngine.points[17], myEngine.points[18], "#000000"),
-    Edge(myEngine.points[18], myEngine.points[19], "#000000"),
-    Edge(myEngine.points[19], myEngine.points[20], "#000000"),
-    Edge(myEngine.points[20], myEngine.points[21], "#000000"),
-    Edge(myEngine.points[21], myEngine.points[22], "#000000"),    
-    Edge(myEngine.points[22], myEngine.points[23], "#000000"),    
-    Edge(myEngine.points[23], myEngine.points[0], "#000000")
-]
-myEngine.circles = [
-    Circle(Point(200.0, 0.0), 10.0, '#ffffff'),    
-    Circle(Point(-200.0, 0.0), 10.0, '#ff00ff'),    
-    Circle(Point(-220.0, 11.0), 10.0, '#00ff00'),
-    Circle(Point(-220.0, -11.0), 10.0, '#0000ff'),
-    Circle(Point(-240.0, 21.0), 10.0, '#ff0000'),
-    Circle(Point(-240.0, 0.0), 10.0, '#000000'),
-    Circle(Point(-240.0, -21.0), 10.0, '#00ffff'),    
-    Circle(Point(-260.0, 32.0), 10.0, '#ffff00'),
-    Circle(Point(-260.0, 11.0), 10.0, '#88ff00'),
-    Circle(Point(-260.0, -11.0), 10.0, '#0088ff'),    
-    Circle(Point(-260.0, -32.0), 10.0, '#ff0088'),
-]
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader = jinja2.FileSystemLoader(os.path.dirname(__file__)),
@@ -107,6 +60,12 @@ class MainHandler(webapp2.RequestHandler):
             '''
             self.response.write(html)
 
+class About(webapp2.RequestHandler):
+    def get(self):
+        template_values = {}
+        template = JINJA_ENVIRONMENT.get_template('html/about.html')
+        self.response.write(template.render(template_values))
+    
 class GetUserId(webapp2.RequestHandler):
     def post(self):
         global users
@@ -139,7 +98,7 @@ class CheckIn(webapp2.RequestHandler):
                 userExists = True
             else:
                 users[i]['ttl'] -= 1
-                if (users[i]['ttl'] == 0):
+                if (users[i]['ttl'] <= 0):
                     users.pop(i)
         
         #assemble user list
@@ -153,16 +112,28 @@ class CheckIn(webapp2.RequestHandler):
             #only to in-game players
             
             #getting unpredictable index out of bounds errors when deployed???
-            try:
-                if (myId == users[0]['userId']) and (user0RecievedAnimation == False):
-                    user0RecievedAnimation = True
-                    animation = myEngine.animationList
-                elif (myId == users[1]['userId']) and (user1RecievedAnimation == False):
-                    user1RecievedAnimation = True
-                    animation = myEngine.animationList
-            except:
-                user1RecievedAnimation = False
-                animation = []
+            #try:
+            if (myId == users[0]['userId']) and (user0RecievedAnimation == False):
+                #toggle turn after animation is sent to both players
+                if (user1RecievedAnimation == True):
+                    users[0]['turn'] *= -1
+                    users[1]['turn'] *= -1
+                    
+                user0RecievedAnimation = True
+                animation = myEngine.animationList
+                logging.info( str(len(myEngine.animationList)) + " animation frames to " + users[0]['userName'] )
+            elif (myId == users[1]['userId']) and (user1RecievedAnimation == False):
+                #toggle turn after animation is sent to both players
+                if (user0RecievedAnimation == True):
+                    users[0]['turn'] *= -1
+                    users[1]['turn'] *= -1
+                user1RecievedAnimation = True
+                animation = myEngine.animationList
+                logging.info( str(len(myEngine.animationList)) + " animation frames to " + users[1]['userName'] )
+
+            #except:
+            #    user1RecievedAnimation = False
+            #    user0RecievedAnimation = False
                 
         if (userExists):
             self.response.write(json.dumps({"accepted": 1, "visitors": userList, "animationFrames": animation}))
@@ -186,11 +157,75 @@ class InitializeGame(webapp2.RequestHandler):
             if (users[0]['userId'] == id):
                 turn = 1
                 users[0]['turn'] = 1
-        
+                
+        user0RecievedAnimation = False
+        user1RecievedAnimation = False
+        engineIsThinking = False
+        myEngine = Engine()
+        myEngine.animationList = []
+
+        myEngine.points = [
+            Point(400.0, 170.0), Point(430.0, 200.0), Point(400.0, 230.0), Point(370.0, 200.0), 
+            Point(21.3, 200.0), Point(21.3, 242.5), Point(-21.3, 242.5), Point(-21.3, 200.0),
+            Point(-370.0, 200.0), Point(-400.0, 230.0), Point(-430.0, 200.0), Point(-400.0, 170.0),
+            Point(-400.0, -170.0), Point(-430.0, -200.0), Point(-400.0, -230.0), Point(-370.0, -200.0),
+            Point(-21.3, -200.0), Point(-21.3, -242.5), Point(21.3, -242.5), Point(21.3, -200.0),
+            Point(370.0, -200.0), Point(400.0, -230.0), Point(430.0, -200.0), Point(400.0, -170.0),    
+        ]
+        myEngine.edges = [
+            Edge(myEngine.points[0], myEngine.points[1], "#000000"),
+            Edge(myEngine.points[1], myEngine.points[2], "#000000"),
+            Edge(myEngine.points[2], myEngine.points[3], "#000000"),
+            Edge(myEngine.points[3], myEngine.points[4], "#000000"),
+            Edge(myEngine.points[4], myEngine.points[5], "#000000"),
+            Edge(myEngine.points[5], myEngine.points[6], "#000000"),
+            Edge(myEngine.points[6], myEngine.points[7], "#000000"),
+            Edge(myEngine.points[7], myEngine.points[8], "#000000"),
+            Edge(myEngine.points[8], myEngine.points[9], "#000000"),
+            Edge(myEngine.points[9], myEngine.points[10], "#000000"),    
+            Edge(myEngine.points[10], myEngine.points[11], "#000000"),
+            Edge(myEngine.points[11], myEngine.points[12], "#000000"),
+            Edge(myEngine.points[12], myEngine.points[13], "#000000"),
+            Edge(myEngine.points[13], myEngine.points[14], "#000000"),
+            Edge(myEngine.points[14], myEngine.points[15], "#000000"),
+            Edge(myEngine.points[15], myEngine.points[16], "#000000"),    
+            Edge(myEngine.points[16], myEngine.points[17], "#000000"),
+            Edge(myEngine.points[17], myEngine.points[18], "#000000"),
+            Edge(myEngine.points[18], myEngine.points[19], "#000000"),
+            Edge(myEngine.points[19], myEngine.points[20], "#000000"),
+            Edge(myEngine.points[20], myEngine.points[21], "#000000"),
+            Edge(myEngine.points[21], myEngine.points[22], "#000000"),    
+            Edge(myEngine.points[22], myEngine.points[23], "#000000"),    
+            Edge(myEngine.points[23], myEngine.points[0], "#000000")
+        ]
+        myEngine.tableEdges = [
+            Edge(myEngine.points[0], myEngine.points[3], "#000000"),
+            Edge(myEngine.points[3], myEngine.points[8], "#000000"),
+            Edge(myEngine.points[8], myEngine.points[11], "#000000"),            
+            Edge(myEngine.points[11], myEngine.points[12], "#000000"),
+            Edge(myEngine.points[12], myEngine.points[15], "#000000"),
+            Edge(myEngine.points[15], myEngine.points[20], "#000000"),
+            Edge(myEngine.points[20], myEngine.points[23], "#000000"),
+            Edge(myEngine.points[23], myEngine.points[0], "#000000")
+        ]
+        myEngine.circles = [
+            Circle(Point(200.0, 0.0), 10.0, '#ffffff'),    
+            Circle(Point(-200.0, 0.0), 10.0, '#ff00ff'),    
+            Circle(Point(-220.0, 11.0), 10.0, '#00ff00'),
+            Circle(Point(-220.0, -11.0), 10.0, '#0000ff'),
+            Circle(Point(-240.0, 21.0), 10.0, '#ff0000'),
+            Circle(Point(-240.0, 0.0), 10.0, '#000000'),
+            Circle(Point(-240.0, -21.0), 10.0, '#00ffff'),    
+            Circle(Point(-260.0, 32.0), 10.0, '#ffff00'),
+            Circle(Point(-260.0, 11.0), 10.0, '#88ff00'),
+            Circle(Point(-260.0, -11.0), 10.0, '#0088ff'),    
+            Circle(Point(-260.0, -32.0), 10.0, '#ff0088'),
+        ]
+  
         edgeList = []
         for e in myEngine.edges:
-            edgeList.append(e.toJSON())
-
+            edgeList.append(e.toJSON())   
+            
         ballList = []
         for b in myEngine.circles:
             ballList.append(b.toJSON())            
@@ -207,12 +242,6 @@ class Shoot(webapp2.RequestHandler):
         myId = shootDataBundle['userId']
         
         if (len(users) > 1):
-            if (myId == users[0]['userId']):
-                users[0]['turn'] = -1
-                users[1]['turn'] = 1
-            else:
-                users[0]['turn'] = 1
-                users[1]['turn'] = -1
 
             #prevent transmission while thinking
             engineIsThinking = True
@@ -265,24 +294,12 @@ class Reset(webapp2.RequestHandler):
         </html>'''
         
         users = []
-        myEngine.circles = [
-            Circle(Point(200.0, 0.0), 10.0, '#ffffff'),    
-            Circle(Point(-200.0, 0.0), 10.0, '#ff00ff'),    
-            Circle(Point(-220.0, 11.0), 10.0, '#00ff00'),
-            Circle(Point(-220.0, -11.0), 10.0, '#0000ff'),
-            Circle(Point(-240.0, 21.0), 10.0, '#ff0000'),
-            Circle(Point(-240.0, 0.0), 10.0, '#000000'),
-            Circle(Point(-240.0, -21.0), 10.0, '#00ffff'),    
-            Circle(Point(-260.0, 32.0), 10.0, '#ffff00'),
-            Circle(Point(-260.0, 11.0), 10.0, '#88ff00'),
-            Circle(Point(-260.0, -11.0), 10.0, '#0088ff'),    
-            Circle(Point(-260.0, -32.0), 10.0, '#ff0088'),
-        ]
         self.response.write(html)
         
         
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/about', About),
     ('/getUserId', GetUserId),
     ('/checkIn', CheckIn),
     ('/getServerTime', GetServerTime),

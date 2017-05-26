@@ -10,6 +10,7 @@ class Engine():
         self.points = []
         self.edges = []
         self.circles = []
+        self.tableEdges = []
         self.log = []
         self.soonestCollisionCircle = None
         self.soonestCollisionObject = None
@@ -127,8 +128,31 @@ class Engine():
             self.determineNextCollision()
             
         for c in self.circles:
-            c.move(deltaTime)       
-            
+            c.move(deltaTime)
+            #remove circles that are in pockets
+            if (self.isOnTable(c.center) == False):
+                if ((abs(c.center.x) < 500) and (abs(c.center.y) < 500)):
+                    c.center.x *= 100.0
+                    c.center.y *= 100.0
+                    c.velocity.setM(0)                                       
+
+        #replace cue ball if it is lost
+        if ((abs(self.circles[0].center.x) > 500) or (abs(self.circles[0].center.y) > 500)):
+            self.circles[0].center.x = 200.0
+            self.circles[0].center.y = 0.0
+            self.circles[0].velocity.setM(0)
+                
+    def isOnTable(self, p):
+        #counter-clockwise orientation
+        doesContain = True
+        for e in self.tableEdges:
+            e2 = Edge(e.p0, p, '#000000')
+            if (e.det(e2) < 0):
+                doesContain = False
+        
+        return doesContain
+        
+    
     def reduceVelocities(self):
     
         self.inMotion = False

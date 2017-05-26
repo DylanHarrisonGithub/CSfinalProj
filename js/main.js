@@ -93,6 +93,10 @@ function setState(stateNum, dataBundle) {
                     
                     //shooting not allowed during animation
                     if (dataBundle.animationFrames.length == 0) {
+                        $("#shootPanButton").html("Shoot Mode");
+                        dataBundle.shootMode = -1;
+                        $("#shootPanButton").prop('disabled', true);
+                        $("#pleaseWait").html("Please Wait..");
                         shoot(shot, dataBundle);
                     }
                     
@@ -274,6 +278,9 @@ function animationEvent(dataBundle) {
         if (dataBundle.animationFrames.length > 0) {
             if (dataBundle.balls.length == dataBundle.animationFrames[0].length) {
                 var newFrame = dataBundle.animationFrames.shift();
+                if (dataBundle.animationFrames.length == 0) {
+                    $("#pleaseWait").html("");
+                }
                 for (var i = 0; i < newFrame.length; i++) {
                     dataBundle.balls[i].center.x = newFrame[i].x;
                     dataBundle.balls[i].center.y = newFrame[i].y;
@@ -331,14 +338,17 @@ function checkIn(dataBundle) {
                         dataBundle.user.turn = dataBundle.knownVisitors[i].turn;
                     }                   
                 }
-                
-                
+                                
                 //recieve new animation frames if there are none already
                 if (dataBundle.animationFrames.length == 0) {
-                    dataBundle.animationFrames = d.animationFrames;                   
+                    dataBundle.animationFrames = d.animationFrames;
+                    if (dataBundle.animationFrames.length > 0) {
+                        $("#pleaseWait").html("Please Wait..");
+                    }
                 }
                 doState(dataBundle);
             } else {
+                //alert("could not check in");
                 //setState(0, dataBundle);
             }
         },
@@ -368,9 +378,7 @@ function shoot(shot, dataBundle) {
         "type": "POST",
         "data": JSON.stringify({"userId": dataBundle.user.userId, "shot": shot}),
         "success": function() {
-            $("#shootPanButton").html("Shoot Mode");
-            dataBundle.shootMode = -1;
-            $("#shootPanButton").prop('disabled', true);
+            
         },
         "failure": function(data) {
             //setState(0, dataBundle);
